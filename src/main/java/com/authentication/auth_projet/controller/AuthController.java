@@ -4,6 +4,7 @@ import com.authentication.auth_projet.dto.LoginRequest;
 import com.authentication.auth_projet.dto.RegisterRequest;
 import com.authentication.auth_projet.entity.User;
 import com.authentication.auth_projet.repository.UserRepository;
+import com.authentication.auth_projet.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import org.springframework.security.core.AuthenticationException;
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository;
+    private AuthService authService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -32,28 +33,21 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
-        if(userRepository.findByUsername(request.username()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username is already in use");
+        try {
+            String response = authService.register(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        User user =  new User();
-        user.setUsername(request.username());
-        user.setRole("ROLE_PLAYER");
-        user.setPass_hash(passwordEncoder.encode(request.pass_hash()));
-
-        userRepository.save(user);
-        return ResponseEntity.ok().body("User registered successfully");
     }
 
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        try{
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.username(), request.password())
-            );
-            return ResponseEntity.ok().body("Login successful"); //here i can generate the JWT token
-        }catch (AuthenticationException e){
+        try {
+            String message = authService.login(request);
+            return ResponseEntity.ok(message);
+        } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
     }

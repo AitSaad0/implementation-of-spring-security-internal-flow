@@ -1,10 +1,7 @@
 package com.authentication.auth_projet.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +18,7 @@ import java.util.List;
 public class User  implements UserDetails {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -51,6 +49,6 @@ public class User  implements UserDetails {
     public boolean isEnabled() { return true; }
     @Override
     public String getPassword() {
-        return "";
+        return this.pass_hash;
     }
 }
